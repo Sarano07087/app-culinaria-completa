@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="256" fill="url(#gradient)"/>
+  
+  <!-- Chef Hat Icon -->
+  <path d="M256 140C230 140 208 162 208 188C208 194 209 200 211 205C195 210 184 225 184 243V283C184 297 195 308 209 308H303C317 308 328 297 328 283V243C328 225 317 210 301 205C303 200 304 194 304 188C304 162 282 140 256 140Z" fill="white"/>
+  <path d="M184 283H328V323C328 337 317 348 303 348H209C195 348 184 337 184 323V283Z" fill="white" opacity="0.9"/>
+  
+  <!-- Decorative Elements -->
+  <circle cx="220" cy="200" r="8" fill="white" opacity="0.6"/>
+  <circle cx="292" cy="200" r="8" fill="white" opacity="0.6"/>
+  <circle cx="256" cy="185" r="10" fill="white" opacity="0.6"/>
+  
+  <defs>
+    <linearGradient id="gradient" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#EA580C"/>
+    </linearGradient>
+  </defs>
+</svg>
