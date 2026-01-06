@@ -3,10 +3,24 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Share2, MoreHorizontal, Plus } from "lucide-react";
-import { useState } from "react";
+import { Heart, MessageCircle, Share2, MoreHorizontal, Plus, Image as ImageIcon, X } from "lucide-react";
+import { useState, useRef } from "react";
+import { useUser } from "@/contexts/UserContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [postContent, setPostContent] = useState("");
+  const [postImage, setPostImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [posts, setPosts] = useState([
     {
       id: "1",
@@ -47,6 +61,49 @@ export default function DashboardPage() {
     }));
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPostImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPostImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCreatePost = () => {
+    if (!postContent.trim() && !postImage) return;
+
+    const newPost = {
+      id: Date.now().toString(),
+      author: {
+        name: user.name,
+        avatar: user.profileImage,
+      },
+      content: postContent,
+      image: postImage || undefined,
+      funCooks: 0,
+      comments: 0,
+      isFunCooked: false,
+    };
+
+    setPosts([newPost, ...posts]);
+    setPostContent("");
+    setPostImage(null);
+    setIsCreatePostOpen(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-20 md:pb-6">
       {/* Welcome Header */}
@@ -62,24 +119,120 @@ export default function DashboardPage() {
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop" />
-              <AvatarFallback>EU</AvatarFallback>
+              <AvatarImage src={user.profileImage} />
+              <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <Button
               variant="outline"
               className="flex-1 justify-start text-gray-500 hover:text-orange-600 hover:border-orange-300"
+              onClick={() => setIsCreatePostOpen(true)}
             >
               Compartilhe sua receita...
             </Button>
             <Button
               size="icon"
               className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+              onClick={() => setIsCreatePostOpen(true)}
             >
               <Plus className="w-5 h-5" />
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Create Post Dialog */}
+      <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Criar Nova Receita
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* User Info */}
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarImage src={user.profileImage} />
+                <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-semibold text-gray-900">{user.name}</p>
+                <p className="text-sm text-gray-500">@{user.username}</p>
+              </div>
+            </div>
+
+            {/* Text Content */}
+            <Textarea
+              placeholder="Compartilhe sua receita, dicas ou experiências culinárias..."
+              value={postContent}
+              onChange={(e) => setPostContent(e.target.value)}
+              className="min-h-[120px] resize-none border-gray-300 focus:border-orange-500 focus:ring-orange-500"
+            />
+
+            {/* Image Preview */}
+            {postImage && (
+              <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                <img
+                  src={postImage}
+                  alt="Preview"
+                  className="w-full h-64 object-cover"
+                />
+                <Button
+                  size="icon"
+                  variant="destructive"
+                  className="absolute top-2 right-2 rounded-full"
+                  onClick={handleRemoveImage}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageSelect}
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 border-orange-300 text-orange-600 hover:bg-orange-50"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  {postImage ? "Trocar Foto" : "Adicionar Foto"}
+                </Button>
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreatePostOpen(false);
+                    setPostContent("");
+                    setPostImage(null);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white"
+                  onClick={handleCreatePost}
+                  disabled={!postContent.trim() && !postImage}
+                >
+                  Publicar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Feed Posts */}
       {posts.map((post) => (
@@ -103,9 +256,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Post Content */}
-            <div className="px-4 pb-3">
-              <p className="text-gray-800">{post.content}</p>
-            </div>
+            {post.content && (
+              <div className="px-4 pb-3">
+                <p className="text-gray-800">{post.content}</p>
+              </div>
+            )}
 
             {/* Post Image */}
             {post.image && (
